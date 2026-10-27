@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
     tags:
       - 'v*'
   workflow_dispatch:
@@ -76,6 +77,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare site directory for GitHub Pages
+        if: startsWith(github.ref, 'refs/heads/') || github.event_name == 'workflow_dispatch'
         run: |
           mkdir -p _site
           cp index.html index.css app.js _site/
@@ -84,12 +86,14 @@ jobs:
           if [ -f "tatooine_dune_01.dds" ]; then cp tatooine_dune_01.dds _site/; fi
 
       - name: Upload GitHub Pages artifact
+        if: startsWith(github.ref, 'refs/heads/') || github.event_name == 'workflow_dispatch'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
   deploy-pages:
     needs: build-and-package
+    if: startsWith(github.ref, 'refs/heads/') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
