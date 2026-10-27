@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Star Wars Galaxies TRE Archive Workbench</title>
+  <meta name="description"
+    content="Professional WebAssembly Star Wars Galaxies TRE archive reader and asset extractor.">
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+  <div class="app-workbench">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="app-brand">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          <span>SWG TRE Workbench</span>
+        </div>
+        <div class="separator"></div>
+        <div class="archive-title" id="archive-header-info">
+          <span>Archive:</span>
+          <span class="archive-pill" id="archive-name-pill">No Archive Loaded</span>
+        </div>
+      </div>
+
+      <div class="top-bar-right">
+        <button id="btn-load-demo" class="btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Load Demo Archive
+        </button>
+        <button id="btn-open-tre" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Open .TRE...
+        </button>
+        <input type="file" id="file-input" style="display:none;" accept=".tre">
+        <button id="btn-export-csv" class="btn btn-sm" title="Export file table to CSV" disabled>
+          Export CSV
+        </button>
+      </div>
+    </header>
+
+    <!-- Workbench Workspace -->
+    <div class="workbench-content">
+      <!-- Left: Directory Hierarchy Tree -->
+      <aside class="sidebar-tree">
+        <div class="panel-header">
+          <span>Directories</span>
+          <span id="folder-count-badge" style="font-family: var(--font-mono); font-size: 10px;">0</span>
+        </div>
+        <div class="tree-list" id="tree-list">
+          <div class="tree-item active" data-folder="all">
+            <span class="tree-item-name">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              All Files
+            </span>
+            <span class="tree-count" id="tree-count-all">0</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center: Main Asset Table -->
+      <main class="main-view">
+        <div class="filter-toolbar">
+          <div class="search-box">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="search-input" placeholder="Filter records by name, path, extension..."
+              autocomplete="off">
+          </div>
+
+          <div class="type-filter-group" id="type-filter-group">
+            <button class="filter-chip active" data-ext="all">All</button>
+            <button class="filter-chip" data-ext="dds">.DDS</button>
+            <button class="filter-chip" data-ext="mgn,msh">.MGN/.MSH</button>
+            <button class="filter-chip" data-ext="sht,eft">.SHT/.EFT</button>
+            <button class="filter-chip" data-ext="iff">.IFF</button>
+            <button class="filter-chip" data-ext="ans">.ANS</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper" id="table-wrapper">
+          <table class="data-table" id="asset-table">
+            <thead>
+              <tr>
+                <th class="col-idx">#</th>
+                <th class="col-name">File Path</th>
+                <th class="col-ext">Type</th>
+                <th class="col-size">Size</th>
+                <th class="col-packed">Packed</th>
+                <th class="col-ratio">Ratio</th>
+                <th class="col-crc">CRC32</th>
+                <th class="col-act">Action</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr>
+                <td colspan="8"
+                  style="text-align: center; color: var(--text-muted); padding: 40px 0; font-family: var(--font-ui);">
+                  Open an SWG .tre archive file or load the demo archive to inspect and extract contents.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      <!-- Right: Asset Inspector & Hex Viewer -->
+      <aside class="sidebar-inspector">
+        <div class="panel-header">
+          <span>Inspector & Hex View</span>
+          <span id="insp-ext-pill" class="badge-ext" style="display:none;">-</span>
+        </div>
+
+        <div class="inspector-body">
+          <div class="property-group">
+            <div class="prop-row">
+              <span class="prop-key">Name</span>
+              <span class="prop-val" id="prop-filename">-</span>
+            </div>
+            <div class="prop-row">
+              <span class="prop-key">Path</span>
+              <span class="prop-val" id="prop-filepath" style="font-size: 10px;">-</span>
+            </div>
+            <div class="prop-row">
+              <span class="prop-key">Unpacked</span>
+              <span class="prop-val" id="prop-size">-</span>
+            </div>
+            <div class="prop-row">
+              <span class="prop-key">Packed</span>
+              <span class="prop-val" id="prop-packed">-</span>
+            </div>
+            <div class="prop-row">
+              <span class="prop-key">Compression</span>
+              <span class="prop-val" id="prop-compression">-</span>
+            </div>
+            <div class="prop-row">
+              <span class="prop-key">CRC-32</span>
+              <span class="prop-val" id="prop-crc32">-</span>
+            </div>
+            <div class="prop-row">
+              <span class="prop-key">Data Offset</span>
+              <span class="prop-val" id="prop-offset">-</span>
+            </div>
+          </div>
+
+          <button id="btn-extract-selected" class="btn btn-primary" style="justify-content: center; width: 100%;"
+            disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Extract & Save File
+          </button>
+
+          <div class="viewer-section">
+            <div class="viewer-header">
+              <span id="viewer-header-title">Data Stream Preview</span>
+              <div style="display: flex; gap: 4px;">
+                <button id="btn-view-hex" class="filter-chip active"
+                  style="padding: 1px 6px; font-size: 10px;">Hex</button>
+                <button id="btn-view-text" class="filter-chip" style="padding: 1px 6px; font-size: 10px;">Text</button>
+              </div>
+            </div>
+            <div class="hex-display" id="hex-display">Select a file and click Extract to inspect raw bytes...</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <footer class="status-bar">
+      <div class="status-left">
+        <span id="status-msg">Ready</span>
+        <span id="status-records">0 items</span>
+        <span id="status-unpacked-size">0 B total</span>
+      </div>
+      <div class="status-right">
+        <span id="status-timing">Parse: 0.0ms</span>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>

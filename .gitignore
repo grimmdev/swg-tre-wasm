@@ -1,0 +1,19 @@
+# Rust build outputs
+/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Operating System files
+.DS_Store
+Thumbs.db
+*.tmp
+desktop.ini
+
+# Editor and IDE configurations
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Diagnostic and temporary logs
+*.log
