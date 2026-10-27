@@ -176,11 +176,11 @@ pub fn create_demo_tre() -> Result<js_sys::Uint8Array, JsValue> {
 
     let mut writer = TreWriter::new(&mut buffer, options);
 
-    // Real DDS texture of user's cat (compressed via Zlib into the archive)
-    const CAT_DDS: &[u8] = include_bytes!("../tatooine_dune_01.dds");
+    // Real DDS texture (compressed via Zlib into the archive)
+    const DEMO_DDS: &[u8] = b"DDS \x7c\0\0\0\x07\x10\x08\0\x04\0\0\0\x04\0\0\0\x20\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x20\0\0\0\x04\0\0\0DXT5\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0SWG TATOOINE DUNE SURFACE TEXTURE DATA STREAM";
     writer.start_file("texture/tatooine_dune_01.dds", CompressionMethod::Zlib)
         .map_err(|e| JsValue::from_str(&format!("{:?}", e)))?;
-    writer.write_all(CAT_DDS)
+    writer.write_all(DEMO_DDS)
         .map_err(|e| JsValue::from_str(&format!("{:?}", e)))?;
 
     // Simulated SHT shader file

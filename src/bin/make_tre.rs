@@ -20,12 +20,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut writer = TreWriter::new(file, options);
 
-    // Add user's cat DDS file if present
+    // Add cat DDS file if present, or default DDS payload
     if Path::new("tatooine_dune_01.dds").exists() {
         let cat_bytes = fs::read("tatooine_dune_01.dds")?;
         println!("Adding 'texture/tatooine_dune_01.dds' ({} bytes)...", cat_bytes.len());
         writer.start_file("texture/tatooine_dune_01.dds", CompressionMethod::Zlib)?;
         writer.write_all(&cat_bytes)?;
+    } else {
+        println!("tatooine_dune_01.dds not found on disk, using built-in DDS data...");
+        writer.start_file("texture/tatooine_dune_01.dds", CompressionMethod::Zlib)?;
+        writer.write_all(b"DDS \x7c\0\0\0\x07\x10\x08\0\x04\0\0\0\x04\0\0\0\x20\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x20\0\0\0\x04\0\0\0DXT5\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0SWG TATOOINE DUNE SURFACE TEXTURE DATA STREAM")?;
     }
 
     // Add shader definition
